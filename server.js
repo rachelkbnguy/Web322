@@ -14,7 +14,7 @@ var HTTP_PORT = process.env.PORT || 8080;
 var express = require("express");
 var app = express();
 var path = require("path");
-//var dataService = require("./data-service.js");
+var dataService = require("./data-service.js");
 const exphbs = require("express-handlebars");
 const bodyParser = require("body-parser");
 
