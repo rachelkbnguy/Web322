@@ -209,6 +209,7 @@ dataService.initialize().then((data)=>{
     */
     dataServiceComments.initialize()
     .then(() => {
+        
       dataServiceComments.addComment({
         authorName: "Comment 1 Author",
         authorEmail: "comment1@mail.com",
@@ -226,7 +227,8 @@ dataService.initialize().then((data)=>{
           process.exit();
         });
       });
-    }).catch((err) => {
+    })
+    .catch((err) => {
       console.log("Error: " + err);
       process.exit();
     });
