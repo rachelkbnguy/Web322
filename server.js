@@ -54,7 +54,13 @@ app.get("/", (req,res)=>{
 
 // setup another route to listen on /about
 app.get("/about", (req,res)=>{
-    res.render("about");
+    dataServiceComments.getAllComments()
+    .then((dataFromPromise)=>{
+        res.render("about", {data: dataFromPromise});
+    })
+    .catch(()=>{
+        res.render("about")
+    });
 });
 
 //setup new routes for as3
@@ -104,7 +110,7 @@ app.get("/employee/:eNum", (req, res) => {
         // viewData.departments object
   
        for (let i = 0; i < viewData.departments.length; i++) {
-          if (viewData.departments[i].departmentId == viewData.data.department) {
+          if (viewData.departments[i].departmentId == viewData.data.department) {t6t
             viewData.departments[i].selected = true;
           }
         }
@@ -195,41 +201,42 @@ app.get("/employee/delete/:empNum", (req, res)=>{
           res.status(500).send("Unable to Remove Employee")
       })
 });
+
+//POST /about/addComment
+app.post("/about/addComment", (req, res)=>{
+    dataServiceComments.addComment(req.body)
+    .then(()=>{
+        res.redirect("/about");
+    })
+    .catch((err)=>{
+        console.log(err);
+        res.redirect("/about");
+    });
+});
+
+//POST /about/addReply
+app.post("/about/addReply", (req, res)=>{
+    dataServiceComments.addReply(req.body)
+    .then(()=>{
+        res.redirect("/about");
+    })
+    .catch((err)=>{
+        console.log(err);
+        res.redirect("/about");
+    });
+});
+
 //Return error message - put at the end for use() function
 app.use((req,res)=>{
   res.status(404).send("Sorry! \n Message 404: Your Page is Not Found =.=!");
 });
-/*
-dataService.initialize().then((data)=>{
+
+dataService.initialize().then(()=>{
+    dataServiceComments.initialize();
+    }).then(()=>{
     app.listen(HTTP_PORT,listenMsg);
     })
     .catch((err)=>{
     console.log(err);
     });
-    */
-    dataServiceComments.initialize()
-    .then(() => {
-        
-      dataServiceComments.addComment({
-        authorName: "Comment 1 Author",
-        authorEmail: "comment1@mail.com",
-        subject: "Comment 1",
-        commentText: "Comment Text 1"
-      }).then((id) => {
-        dataServiceComments.addReply({
-          comment_id: id,
-          authorName: "Reply 1 Author",
-          authorEmail: "reply1@mail.com",
-          commentText: "Reply Text 1"
-        }).then(dataServiceComments.getAllComments)
-        .then((data) => {
-          console.log("comment: " + data[data.length - 1]);
-          process.exit();
-        });
-      });
-    })
-    .catch((err) => {
-      console.log("Error: " + err);
-      process.exit();
-    });
-  
+   
