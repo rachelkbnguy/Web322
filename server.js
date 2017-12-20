@@ -6,7 +6,7 @@
  
 *  Name: _KHAI BINH NGUY    Student ID: ____126463165___    _ Date: ___12/19/2017________   
 *
-*  Online (Heroku) Link: https://immense-everglades-13227.herokuapp.com/
+*  Online (Heroku) Link: https://immense-everglades-13227.herokuapp.com/about
 *
 ********************************************************************************/ 
 const dataServiceComments = require("./data-service-comments.js");
