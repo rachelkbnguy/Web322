@@ -13,6 +13,8 @@
 			<div class="row">
 				<div class="col-md-12">
 					<h1>myApp</h1>
+					<span class="pull-right"><a href="/logout" class="btn btn-primary">&nbsp;&nbsp;&nbsp;Log Out: {{session.user.user}}&nbsp;&nbsp;&nbsp;</a></span> 
+					<span class="pull-right"><a class="btn btn-success" href="/login">&nbsp;&nbsp;&nbsp;Login&nbsp;&nbsp;&nbsp;</a><a class="btn btn-primary" href="/register">&nbsp;&nbsp;&nbsp;Register&nbsp;&nbsp;&nbsp;</a></span> 
 				</div>
 			</div>
 		</div>
@@ -25,12 +27,13 @@
                         <li> <a href="/"> Home </a> </li>
                         <li> <a href="/about"> About </a> </li>
                     </ul>
-
+					{{#if session.user}}
                     <ul class="pull-right">
                         <li> <a href="/employees"> All Employees </a> </li>
                         <li> <a href="/managers"> Managers </a> </li>
                         <li> <a href="/departments"> Departments </a> </li>
                     </ul>
+					{{/if}}
 				</div>
 			</div>
 		</div>

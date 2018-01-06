@@ -6,7 +6,7 @@
  
 *  Name: _KHAI BINH NGUY    Student ID: ____126463165___    _ Date: ___12/19/2017________   
 *
-*  Online (Heroku) Link: https://immense-everglades-13227.herokuapp.com/about
+*  Online (Heroku) Link:https://last-assignment-web322.herokuapp.com/
 *
 ********************************************************************************/ 
 const dataServiceComments = require("./data-service-comments.js");
@@ -17,6 +17,27 @@ var path = require("path");
 var dataService = require("./data-service.js");
 const exphbs = require("express-handlebars");
 const bodyParser = require("body-parser");
+var clientSessions = require("client-sessions"); 
+var dataServiceAuth = require("./data-service-auth.js");
+
+
+
+ // Setup client-sessions 
+ app.use(clientSessions({   
+   cookieName: "session", // this is the object name that will be added to 'req'   
+   secret: "web322_A7", // this should be a long un-guessable string. 
+   duration: 2 * 60 * 1000, // duration of the session in milliseconds (2 minutes)   
+   activeDuration: 1000 * 60 // the session will be extended by this many ms each request (1 minute) 
+})); 
+//middleware function 
+app.use(function(req, res, next) {   res.locals.session = req.session;   next(); 
+});  
+function ensureLogin(req, res, next) { 
+  if (!req.session.user) {     res.redirect("/login"); 
+  } else { 
+    next(); 
+  } 
+}  
 
 //for returning css/site.css file
 app.use(express.static('public'));
@@ -64,7 +85,7 @@ app.get("/about", (req,res)=>{
 });
 
 //setup new routes for as3
-app.get("/employees", (req,res)=>{
+app.get("/employees",ensureLogin,  (req,res)=>{
   if(req.query.status){ //check the status
     dataService.getEmployeesByStatus(req.query.status).then((data)=>{
     res.render("employeeList", { data: data, title: "Employees" }); 
@@ -92,7 +113,7 @@ app.get("/employees", (req,res)=>{
   }
 });
 
-app.get("/employee/:eNum", (req, res) => {
+app.get("/employee/:eNum", ensureLogin, (req, res) => {
   
     // initialize an empty object to store the values
     let viewData = {};
@@ -127,7 +148,7 @@ app.get("/employee/:eNum", (req, res) => {
   
   
 //check /managers
-app.get("/managers",(req,res)=>{ 
+app.get("/managers",ensureLogin, (req,res)=>{ 
   dataService.getManagers().then((data)=>{
     res.render("employeeList", { data: data, title: "Employees (Managers)" });
   }).catch((err)=>{
@@ -135,7 +156,7 @@ app.get("/managers",(req,res)=>{
   });
 });
 //check departments
-app.get("/departments",(req,res)=>{ 
+app.get("/departments",ensureLogin, (req,res)=>{ 
   dataService.getDepartments().then((data)=>{
     res.render("departmentList", { data: data, title: "Departments" });
   }).catch((err)=>{
@@ -143,7 +164,7 @@ app.get("/departments",(req,res)=>{
   });
 });
 //Add route /employees/add
-app.get("/employees/add", (req,res) => {
+app.get("/employees/add", ensureLogin, (req,res) => {
   dataService.getDepartments()
   .then((data)=>{
       res.render("addEmployee", {departments: data});
@@ -153,36 +174,52 @@ app.get("/employees/add", (req,res) => {
 });
 
 //Add route /departments/add
-app.get("/departments/add", (req,res) => {
+app.get("/departments/add", ensureLogin, (req,res) => {
   res.render("addDepartment");
+});
+//as7 rout add-on
+//add route /login
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+//add route /register
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
+//add route /logout
+app.get("/logout", (req, res) => {
+  req.session.reset();
+  res.redirect('/');
 });
 
 //POST Route for AddEmployee
-app.post("/employees/add", (req, res) => {
+app.post("/employees/add",ensureLogin,  (req, res) => {
     dataService.addEmployee(req.body).then(()=>{
      res.redirect("/employees"); 
     });
 });
 //POST Route for AddDepartment
-app.post("/departments/add", (req, res) => {
+app.post("/departments/add",ensureLogin,  (req, res) => {
   dataService.addDepartment(req.body).then((data)=>{
    res.redirect("/departments"); 
   });
 });
 //POST Route for UpdateEmployee
-app.post("/employee/update", (req, res)=>{
+app.post("/employee/update", ensureLogin, (req, res)=>{
     dataService.updateEmployee(req.body).then(()=>{
       res.redirect("/employees");
   });
 });
 //POST Route for UpdateDepartments
-app.post("/department/update", (req, res)=>{
+app.post("/department/update", ensureLogin, (req, res)=>{
   dataService.updateDepartment(req.body).then((data)=>{
     res.redirect("/departments");
 });
 });
 
-app.get("/department/:departmentId", (req, res)=>{
+app.get("/department/:departmentId", ensureLogin, (req, res)=>{
   dataService.getDepartmentById(req.params.departmentId)
       .then((data)=>{
           res.render("department", {data: data});
@@ -192,7 +229,7 @@ app.get("/department/:departmentId", (req, res)=>{
       });
 });
 
-app.get("/employee/delete/:empNum", (req, res)=>{
+app.get("/employee/delete/:empNum",ensureLogin,  (req, res)=>{
   dataService.deleteEmployeeByNum(req.params.empNum)
       .then((data)=>{
           res.redirect("/employees");
@@ -226,6 +263,30 @@ app.post("/about/addReply", (req, res)=>{
     });
 });
 
+//as7 POST
+//post /register
+app.post("/register", (req, res) => {
+  dataServiceAuth.registerUser(req.body)
+  .then(() => {
+    res.render("register", {successMessage: "User created"} )
+  }).catch((err)=>{
+    res.render("register",{errorMessage: err, user: req.body.user} );
+  });
+});
+
+//POST /login
+app.post("/login", (req, res) => {
+  dataServiceAuth.checkUser(req.body)
+  .then(() => {
+    req.session.user = {
+      user: req.body.user
+    }
+    res.redirect("/employees");
+  }).catch((err) => {
+      res.render("login", {errorMessage: err, user: req.body.user});
+  });
+});
+
 //Return error message - put at the end for use() function
 app.use((req,res)=>{
   res.status(404).send("Sorry! \n Message 404: Your Page is Not Found =.=!");
@@ -233,6 +294,7 @@ app.use((req,res)=>{
 
 dataService.initialize().then(()=>{
     dataServiceComments.initialize();
+    dataServiceAuth.initialize();
     }).then(()=>{
     app.listen(HTTP_PORT,listenMsg);
     })
